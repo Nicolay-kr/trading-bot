@@ -1,29 +1,31 @@
 import { Stack, StackProps } from "aws-cdk-lib";
+import * as path from "path";
 import { Construct } from "constructs";
 import * as lambda from "aws-cdk-lib/aws-lambda";
 import * as apigateway from "aws-cdk-lib/aws-apigateway";
+import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 
-export class MyCdkAppStack extends Stack {
+export class SignaBotAppStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props);
 
-    const myLambda = new lambda.Function(this, "MyLambdaFunction", {
+    const myLambda = new NodejsFunction(this, "SignaBotFunction", {
       runtime: lambda.Runtime.NODEJS_18_X,
-      code: lambda.Code.fromAsset("lambda"),
+      entry: path.join(__dirname, "../src/signalbot/index.ts"),
       handler: "index.handler",
     });
 
-    const api = new apigateway.RestApi(this, "MyCustomApi", {
-      restApiName: "My Service API",
-      description: "Custom API Gateway example.",
+    const api = new apigateway.RestApi(this, "SignalBotApi", {
+      restApiName: "Signal Bot API",
+      description: "Signal Bot API example.",
     });
 
-    // Add routes, CORS, and other customizations
-    const helloResource = api.root.addResource("hello");
-    helloResource.addMethod("GET", new apigateway.LambdaIntegration(myLambda));
 
     const userResource = api.root.addResource("notification");
-    userResource.addMethod("POST", new apigateway.LambdaIntegration(myLambda));
+
+    userResource.addMethod("POST", new apigateway.LambdaIntegration(myLambda), {
+      apiKeyRequired: false,
+    });
 
     // Enable CORS
     api.root.addCorsPreflight({

@@ -54,3 +54,10 @@ To remove all resources created by the CDK, use:
 ```
 cdk destroy <stack-name>
 ```
+  <!-- body: 'JIFU Connect:\n' +
+      'Premium Crypto Ideas\n' +
+      'Daniel Lopez: Sol/Usd\n' +
+      'Bullish idea \n' +
+      'Potential zone 150.5-149.50\n' +
+      'Potential inv 147.0\n' +
+      'Potential exits  152.50/ 154.50 /156.50\n', -->

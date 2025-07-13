@@ -1,5 +1,6 @@
 import { parseSignal } from "./helpers/aiParser";
 import { createBybitOrder } from "./helpers/bybit";
+import { sendMail } from "./helpers/sendMail";
 import { TradeSignal } from "./type";
 
 export const handler = async (event: any): Promise<any> => {
@@ -21,10 +22,15 @@ export const handler = async (event: any): Promise<any> => {
       const parsed = (await parseSignal(message)) as TradeSignal;
       console.log("Parsed Signal:", parsed);
 
-      const res =
-        parsed.symbol && parsed.stopLoss
-          ? await createBybitOrder(parsed)
-          : message;
+      const isValidSignal =
+        parsed.symbol && parsed.stopLoss && parsed.takeProfits;
+
+      const res = isValidSignal ? await createBybitOrder(parsed) : message;
+      if (isValidSignal) {
+        await sendMail(`${message}\n\n${JSON.stringify(res, null, 2)}`);
+      } else {
+        await sendMail(`${message}`);
+      }
 
       return {
         statusCode: 200,

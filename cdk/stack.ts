@@ -19,6 +19,8 @@ export class SignaBotAppStack extends Stack {
         OPENAI_API_KEY: process.env.OPENAI_API_KEY || "", 
         BYBIT_API_KEY: process.env.BYBIT_API_KEY || "", 
         BYBIT_API_SECRET: process.env.BYBIT_API_SECRET || "", 
+        EMAIL: process.env.EMAIL || "", 
+        EMAIL_PASS: process.env.EMAIL_PASS || "", 
       },
       timeout: Duration.seconds(15),
     });

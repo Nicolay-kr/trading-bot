@@ -2,7 +2,7 @@ import "dotenv/config";
 const { RestClientV5 } = require("bybit-api");
 import { TradeSignal } from "../type";
 
-const ONE_DEAL_RISK = 10;
+const ONE_DEAL_RISK = 50;
 
 const client = new RestClientV5({
   testnet: false,

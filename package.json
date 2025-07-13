@@ -25,6 +25,7 @@
     "@langchain/openai": "^0.5.18",
     "@langchain/pinecone": "^0.2.0",
     "aws-cdk-lib": "2.173.0",
+    "bybit-api": "^4.1.14",
     "constructs": "^10.0.0",
     "dotenv": "^16.4.5"
   }

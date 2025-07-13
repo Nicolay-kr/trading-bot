@@ -12,12 +12,13 @@ export class SignaBotAppStack extends Stack {
     super(scope, id, props);
 
     const myLambda = new NodejsFunction(this, "SignaBotFunction", {
-      
-      runtime: lambda.Runtime.NODEJS_18_X,
+      runtime: lambda.Runtime.NODEJS_20_X,
       entry: path.join(__dirname, "../src/signalbot/index.ts"),
       handler: "index.handler",
       environment: {
         OPENAI_API_KEY: process.env.OPENAI_API_KEY || "", 
+        BYBIT_API_KEY: process.env.BYBIT_API_KEY || "", 
+        BYBIT_API_SECRET: process.env.BYBIT_API_SECRET || "", 
       },
       timeout: Duration.seconds(15),
     });

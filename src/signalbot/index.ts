@@ -5,6 +5,9 @@ import { TradeSignal } from "./type";
 
 export const handler = async (event: any): Promise<any> => {
   try {
+    console.log("Received signal event: ", event);
+    await sendMail(`New Signal Received: ${event?.body || "No message"}`);
+
     if (!event.body) {
       return {
         statusCode: 400,
@@ -15,21 +18,17 @@ export const handler = async (event: any): Promise<any> => {
       };
     }
     const now = new Date();
-    const message = event.body;
+    const message = event?.body;
 
     if (message.includes("Premium Crypto Ideas")) {
-      console.log("Message:", message);
       const parsed = (await parseSignal(message)) as TradeSignal;
       console.log("Parsed Signal:", parsed);
 
-      const isValidSignal =
-        parsed.symbol && parsed.stopLoss && parsed.takeProfits;
+      const isValidSignal = parsed.symbol && parsed.entryZone;
 
       const res = isValidSignal ? await createBybitOrder(parsed) : message;
       if (isValidSignal) {
-        await sendMail(`${message}\n\n${JSON.stringify(res, null, 2)}`);
-      } else {
-        await sendMail(`${message}`);
+        await sendMail(`The Possition was opened: \n\n${JSON.stringify(res, null, 2)}`);
       }
 
       return {

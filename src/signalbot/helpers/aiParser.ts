@@ -14,7 +14,7 @@ const prompt = ChatPromptTemplate.fromMessages([
     - symbol: formatted as a Bybit trading pair (e.g. Sol/Usd → SOLUSDT)
     - side: 'Buy' for bullish, 'Sell' for bearish
     - entryZone: [upper, lower] range as numbers (used for determining order type)
-    - stopLoss: number (used as stop-loss level)
+    - stopLoss: number (used as stop-loss level, if a signal does not contain information about stop-loss, return vlue that equals 4% of the entry price in the opposite direction of the trade)
     - takeProfits: array of numbers (used for setting multiple TP levels)
 
     Do not include any commentary or explanation. Return only a JSON object with the fields described above. Format symbol names in uppercase with no slashes or spaces.

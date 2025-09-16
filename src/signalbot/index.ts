@@ -6,7 +6,6 @@ import { TradeSignal } from "./type";
 export const handler = async (event: any): Promise<any> => {
   try {
     console.log("Received signal event: ", event);
-    await sendMail(`New Signal Received: ${event?.body || "No message"}`);
 
     if (!event.body) {
       return {
@@ -28,7 +27,12 @@ export const handler = async (event: any): Promise<any> => {
 
       const res = isValidSignal ? await createBybitOrder(parsed) : message;
       if (isValidSignal) {
-        await sendMail(`The Possition was opened: \n\n${JSON.stringify(res, null, 2)}`);
+        await sendMail(
+          `New Signal Received: ${message || "No message"}\n\n
+          The Possition was opened: \n\n${JSON.stringify(res, null, 2)}`
+        );
+      } else {
+        await sendMail(`New Signal Received: ${message || "No message"}`);
       }
 
       return {

@@ -76,18 +76,22 @@ export async function placeBybitOrder({
   takeProfit?: string;
   tpslMode?: "Full" | "Partial";
 }): Promise<any> {
+  const parameters: any = {
+    category,
+    symbol,
+    side,
+    orderType,
+    qty,
+    ...(price ? { price } : {}),
+    ...(stopLoss ? { stopLoss } : {}),
+    ...(takeProfit ? { takeProfit } : {}),
+    ...(tpslMode ? { tpslMode } : {}),
+  };
+
+  console.log("placeBybitOrder parameters: ", parameters);
+
   try {
-    const response = await client.submitOrder({
-      category,
-      symbol,
-      side,
-      orderType,
-      qty,
-      ...(price ? { price } : {}),
-      ...(stopLoss ? { stopLoss } : {}),
-      ...(takeProfit ? { takeProfit } : {}),
-      ...(tpslMode ? { tpslMode } : {}),
-    });
+    const response = await client.submitOrder(parameters);
 
     console.log("placeBybitOrder result: ", response);
     return response;
@@ -108,13 +112,17 @@ export async function setBybitLeverage({
   buyLeverage: string;
   sellLeverage: string;
 }): Promise<any> {
+  const parameters: any = {
+    category,
+    symbol,
+    buyLeverage,
+    sellLeverage,
+  };
+
+  console.log("setBybitLeverage parameters: ", parameters);
+
   try {
-    const response = await client.setLeverage({
-      category,
-      symbol,
-      buyLeverage,
-      sellLeverage,
-    });
+    const response = await client.setLeverage(parameters);
 
     console.log("setBybitLeverage result", response);
     return response;
@@ -153,12 +161,12 @@ const setBybitSetTradingStop = async ({
       symbol,
       tpslMode,
       positionIdx,
-      ...(takeProfit? {takeProfit} : {}),
-      ...(stopLoss? {stopLoss} : {}),
-      ...(tpSize? {tpSize} : {}),
-      ...(slSize? {slSize} : {}),
-      ...(tpLimitPrice? {tpLimitPrice} : {}),
-      ...(tpOrderType? {tpOrderType} : {}),
+      ...(takeProfit ? { takeProfit } : {}),
+      ...(stopLoss ? { stopLoss } : {}),
+      ...(tpSize ? { tpSize } : {}),
+      ...(slSize ? { slSize } : {}),
+      ...(tpLimitPrice ? { tpLimitPrice } : {}),
+      ...(tpOrderType ? { tpOrderType } : {}),
     });
 
     console.log("setBybitSetTradingStop result", response);
@@ -265,16 +273,16 @@ export const createBybitOrder = async (tradeSignal: TradeSignal) => {
       tpslMode: "Full",
     });
 
-      // const partialQty = (qty / 3).toFixed(1);
+    // const partialQty = (qty / 3).toFixed(1);
 
-      // await setBybitSetTradingStop({
-      //   symbol,
-      //   tpslMode: "Partial",
-      //   takeProfit: '152.5',
-      //   tpSize: partialQty.toString(),
-      //   tpOrderType: "Limit",
-      //   tpLimitPrice: '152.4',
-      // });
+    // await setBybitSetTradingStop({
+    //   symbol,
+    //   tpslMode: "Partial",
+    //   takeProfit: '152.5',
+    //   tpSize: partialQty.toString(),
+    //   tpOrderType: "Limit",
+    //   tpLimitPrice: '152.4',
+    // });
 
     return orderResult;
   } catch (error) {
@@ -289,6 +297,13 @@ export const createBybitOrder = async (tradeSignal: TradeSignal) => {
 //   entryZone: [150.5, 149.5],
 //   stopLoss: 147,
 //   takeProfits: [152.5, 154.5, 156.5],
+// };
+// const parsedSignal: TradeSignal = {
+//   symbol: 'XRPUSDT',
+//   side: 'Buy',
+//   entryZone: [ 2.9, 2.85 ],
+//   stopLoss: 2.7,
+//   takeProfits: [ 3.08, 3.15, 3.25 ]
 // };
 
 // const run = async () => {

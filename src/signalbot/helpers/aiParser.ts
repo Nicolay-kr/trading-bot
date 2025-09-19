@@ -11,7 +11,7 @@ const prompt = ChatPromptTemplate.fromMessages([
     "system",
     `You are an AI trading assistant. You will receive raw trading signals in free text format. Your job is to extract and return the following as a valid JSON object for use with the Bybit API:
 
-    - symbol: formatted as a Bybit trading pair (e.g. Sol/Usd → SOLUSDT)
+    - symbol: formatted as a Bybit trading pair (e.g. Sol/Usd → SOLUSDT) dont forget add use USDT instead USD
     - side: ALWAYS return exactly either "Buy" or "Sell".
         Map the source words as follows:
         If the message contains "Bullish", set side to "Buy".

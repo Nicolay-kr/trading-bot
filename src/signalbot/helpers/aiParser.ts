@@ -2,7 +2,6 @@ import { ChatOpenAI } from "@langchain/openai";
 import { ChatPromptTemplate } from "@langchain/core/prompts";
 import { JsonOutputParser } from "@langchain/core/output_parsers";
 import "dotenv/config";
-import { TradeSignal } from "../type";
 
 const GPT_MODEL = "gpt-4.1-mini";
 

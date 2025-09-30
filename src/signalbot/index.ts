@@ -1,7 +1,9 @@
 import { parseSignal } from "./helpers/aiParser";
-import { createBybitOrder } from "./helpers/bybit";
+import { BybitAPI } from "../services/bybit";
 import { sendMail } from "./helpers/sendMail";
 import { TradeSignal } from "./type";
+
+const bybit = new BybitAPI();
 
 export const handler = async (event: any): Promise<any> => {
   try {
@@ -25,7 +27,7 @@ export const handler = async (event: any): Promise<any> => {
 
       const isValidSignal = parsed.symbol && parsed.entryZone;
 
-      const res = isValidSignal ? await createBybitOrder(parsed) : message;
+      const res = isValidSignal ? await bybit.createBybitOrder(parsed) : message;
       if (isValidSignal) {
         await sendMail(
           `New Signal Received: ${message || "No message"}\n\n
@@ -45,7 +47,7 @@ export const handler = async (event: any): Promise<any> => {
       statusCode: 200,
       body: JSON.stringify({ message, time: now.toISOString() }),
     };
-  } catch (error) {
+  } catch (error:any) {
     console.error("Error processing event:", error);
     return {
       statusCode: 500,

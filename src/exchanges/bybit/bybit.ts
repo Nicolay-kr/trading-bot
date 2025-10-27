@@ -1,10 +1,10 @@
 import "dotenv/config";
 const { RestClientV5 } = require("bybit-api");
-import { TradeSignal } from "../signalbot/type";
+import { TradeSignal } from "../../signalbot/type";
 
 const ONE_DEAL_RISK = 50;
 
-export class BybitAPI {
+export class BybitClient {
   private client: InstanceType<typeof RestClientV5>;
 
   constructor() {
@@ -58,7 +58,56 @@ export class BybitAPI {
     };
   }
 
-  async placeBybitOrder({
+  async cancelOrder({
+    category = "linear",
+    symbol,
+    orderId,
+  }: {
+    category: "linear" | "inverse" | "spot";
+    symbol: string;
+    orderId: string;
+  }): Promise<any> {
+    try {
+      await this.syncTimeWithBybit();
+      const response = await this.client.cancelOrder({
+        category,
+        symbol,
+        orderId,
+      });
+
+      console.log("cancelOrder result: ", response);
+      return response;
+    } catch (error) {
+      console.error("cancelOrder error", error);
+      throw error;
+    }
+  }
+
+  async cancelAllOrders(
+    {
+      category,
+      settleCoin,
+    }: {
+      category?: "linear" | "inverse" | "spot";
+      settleCoin?: string;
+    } = { category: "linear", settleCoin: "USDT" }
+  ): Promise<any> {
+    try {
+      await this.syncTimeWithBybit();
+      const response = await this.client.cancelAllOrders({
+        category,
+        settleCoin,
+      });
+
+      console.log("cancelAllOrders result: ", response);
+      return response;
+    } catch (error) {
+      console.error("cancelAllOrders error", error);
+      throw error;
+    }
+  }
+
+  async placeOrder({
     category = "linear",
     symbol,
     side,
@@ -91,15 +140,15 @@ export class BybitAPI {
       ...(tpslMode ? { tpslMode } : {}),
     };
 
-    console.log("placeBybitOrder parameters: ", parameters);
+    console.log("placeOrder parameters: ", parameters);
 
     try {
       const response = await this.client.submitOrder(parameters);
 
-      console.log("placeBybitOrder result: ", response);
+      console.log("placeOrder result: ", response);
       return response;
     } catch (error) {
-      console.error("placeBybitOrder error", error);
+      console.error("placeOrder error", error);
       throw error;
     }
   }
@@ -245,15 +294,15 @@ export class BybitAPI {
     return currentPrice < lower ? lower : currentPrice;
   }
 
-  async createBybitOrder(tradeSignal: TradeSignal) {
+  async createOrder(tradeSignal: TradeSignal) {
     const { symbol, side, entryZone, stopLoss } = tradeSignal;
-    console.log("createBybitOrder with signal:", tradeSignal);
+    console.log("createOrder with signal:", tradeSignal);
 
     try {
       await this.syncTimeWithBybit();
       const currentPrice = await this.getCurrentPrice({ symbol });
-      const entryPrice = BybitAPI.getEntryPrice(currentPrice, entryZone, side);
-      const { qty, leverage } = BybitAPI.calculateQtyAndLeverage({
+      const entryPrice = BybitClient.getEntryPrice(currentPrice, entryZone, side);
+      const { qty, leverage } = BybitClient.calculateQtyAndLeverage({
         entryPrice,
         stopLoss: tradeSignal.stopLoss,
         oneDealRisk: ONE_DEAL_RISK,
@@ -267,7 +316,7 @@ export class BybitAPI {
 
       const isMarketPrice = currentPrice === entryPrice;
 
-      const orderResult = await this.placeBybitOrder({
+      const orderResult = await this.placeOrder({
         symbol,
         side,
         orderType: isMarketPrice ? "Market" : "Limit",
@@ -290,25 +339,31 @@ export class BybitAPI {
 
       return orderResult;
     } catch (error) {
-      console.error("createBybitOrder error", error);
+      console.error("createOrder error", error);
       throw error;
     }
   }
 }
 
 // Example usage:
-// const parsedSignal: TradeSignal = {
-//   symbol: "XRPUSDT",
-//   side: "Sell",
-//   entryZone: [2.86, 2.87],
-//   stopLoss: 3.2,
-//   takeProfits: [2.7, 2.6, 2.5],
-// };
+const parsedSignal: TradeSignal = {
+  symbol: "XRPUSDT",
+  side: "Sell",
+  entryZone: [2.86, 2.87],
+  stopLoss: 3.2,
+  takeProfits: [2.7, 2.6, 2.5],
+};
 
-// const bybit = new BybitAPI();
+const bybit = new BybitClient();
 
-// const run = async () => {
-//   await bybit.createBybitOrder(parsedSignal);
-// };
+const run = async () => {
+  // await bybit.createOrder(parsedSignal);
+  // await bybit.cancelOrder({
+  //   category: "linear",
+  //   symbol: "XRPUSDT",
+  //   orderId: "57a2b0b5-e207-4c3f-93e6-2410f485e586",
+  // });
+  // await bybit.cancelAllOrders();
+};
 
 // run();

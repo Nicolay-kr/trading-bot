@@ -1,9 +1,7 @@
 import { parseSignal } from "./helpers/aiParser";
-import { BybitAPI } from "../services/bybit";
+import { BybitCreator } from "../exchanges/bybit/BybitCreator";
 import { sendMail } from "./helpers/sendMail";
 import { TradeSignal } from "./type";
-
-const bybit = new BybitAPI();
 
 export const handler = async (event: any): Promise<any> => {
   try {
@@ -26,8 +24,9 @@ export const handler = async (event: any): Promise<any> => {
       console.log("Parsed Signal:", parsed);
 
       const isValidSignal = parsed.symbol && parsed.entryZone;
+      const bybitClient = new BybitCreator({ oneDealRisk: 20, testnet: false });
 
-      const res = isValidSignal ? await bybit.createBybitOrder(parsed) : message;
+      const res = isValidSignal ? await bybitClient.executeTrade(parsed) : message;
       if (isValidSignal) {
         await sendMail(
           `New Signal Received: ${message || "No message"}\n\n

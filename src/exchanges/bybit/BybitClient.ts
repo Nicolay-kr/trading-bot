@@ -3,12 +3,13 @@ const { RestClientV5 } = require("bybit-api");
 import { ExchangeClient } from "../ExchangeClient";
 import { TradeSignal } from "../../signalbot/type";
 
-export class BybitClient implements ExchangeClient {
+export class BybitClient extends ExchangeClient {
   private client: InstanceType<typeof RestClientV5>;
   public oneDealRisk: number;
   public config: { oneDealRisk: number; testnet: boolean };
 
   constructor(config: { oneDealRisk: number; testnet: boolean }) {
+    super(config.oneDealRisk);
     this.oneDealRisk = config.oneDealRisk;
     this.client = new RestClientV5({
       testnet: config.testnet,
@@ -125,31 +126,7 @@ export class BybitClient implements ExchangeClient {
     }
   }
 
-  async getCurrentPrice({
-    symbol,
-    category = "linear",
-    interval = "1",
-  }: any): Promise<number> {
-    try {
-      const response = await this.client.getMarkPriceKline({
-        category,
-        symbol,
-        interval,
-        end: Date.now(),
-        limit: 1,
-      });
-
-      const closePrice = parseFloat(response?.result?.list?.[0]?.[4]);
-      if (!closePrice) throw new Error(`No valid price data for ${symbol}`);
-      console.log(`Current ${symbol} price: ${closePrice}`);
-      return closePrice;
-    } catch (error) {
-      console.error("getCurrentPrice error:", error);
-      throw error;
-    }
-  }
-
-  static getEntryPrice(
+  public getEntryPrice(
     currentPrice: number,
     entryZone: number[],
     side: string
@@ -162,6 +139,58 @@ export class BybitClient implements ExchangeClient {
     return currentPrice < lower ? lower : currentPrice;
   }
 
+  async getCurrentPrice({
+    symbol,
+    category = "linear",
+    interval = "1",
+  }: {
+    symbol: string;
+    category?: "linear" | "inverse" | "spot";
+    interval?:
+      | "1"
+      | "3"
+      | "5"
+      | "15"
+      | "30"
+      | "60"
+      | "120"
+      | "240"
+      | "360"
+      | "720"
+      | "D"
+      | "M"
+      | "W";
+  }): Promise<number> {
+    try {
+      const now = Date.now();
+      const response = await this.client.getMarkPriceKline({
+        category,
+        symbol,
+        interval,
+        end: now,
+        limit: 1,
+      });
+
+      if (
+        response.retCode !== 0 ||
+        !response.result?.list?.length ||
+        !response.result.list[0][4]
+      ) {
+        throw new Error(`No valid price data for ${symbol}`);
+      }
+
+      const closePrice = parseFloat(response.result.list[0][4]);
+      console.log(`getCurrentPrice: Close price for ${symbol}:`, closePrice);
+      return closePrice;
+    } catch (error) {
+      console.error(
+        `getCurrentPrice: Failed to get current price for ${symbol}`,
+        error
+      );
+      throw error;
+    }
+  }
+
   async createOrder(tradeSignal: TradeSignal) {
     const { symbol, side, entryZone, stopLoss } = tradeSignal;
     console.log("Creating Bybit order with signal:", tradeSignal);
@@ -169,18 +198,13 @@ export class BybitClient implements ExchangeClient {
     try {
       await this.syncTimeWithExchange();
       const currentPrice = await this.getCurrentPrice({ symbol });
-      const entryPrice = BybitClient.getEntryPrice(
-        currentPrice,
-        entryZone,
-        side
-      );
+      const entryPrice = this.getEntryPrice(currentPrice, entryZone, side);
       const { qty, leverage } = this.calculateQtyAndLeverage({
         entryPrice,
         stopLoss,
         oneDealRisk: this.oneDealRisk,
       });
-      console.log('leverage', leverage);
-      
+
       await this.client.setLeverage({
         category: "linear",
         symbol,

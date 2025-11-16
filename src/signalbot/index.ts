@@ -1,5 +1,6 @@
 import { parseSignal } from "./helpers/aiParser";
 import { BybitCreator } from "../exchanges/bybit/BybitCreator";
+import { PacificaCreator } from "../exchanges/pacifica/PacificaCreator";
 import { sendMail } from "./helpers/sendMail";
 import { TradeSignal } from "./type";
 
@@ -24,7 +25,7 @@ export const handler = async (event: any): Promise<any> => {
       console.log("Parsed Signal:", parsed);
 
       const isValidSignal = parsed.symbol && parsed.entryZone;
-      const bybitClient = new BybitCreator({ oneDealRisk: 25, testnet: false });
+      const bybitClient = new PacificaCreator({ oneDealRisk: 25, testnet: false });
 
       const res = isValidSignal ? await bybitClient.executeTrade(parsed) : message;
       if (isValidSignal) {

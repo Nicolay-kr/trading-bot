@@ -57,7 +57,7 @@ export class PacificaClient extends ExchangeClient {
   private apiSecret: string; // base58-encoded Ed25519 private key
   private baseURL: string;
   private account: string;
-  private maxLeverage: number = 30;
+  private maxLeverage: number = 20;
 
   constructor(config: { oneDealRisk: number; testnet: boolean }) {
     super(config.oneDealRisk);

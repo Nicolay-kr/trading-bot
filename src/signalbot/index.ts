@@ -25,9 +25,9 @@ export const handler = async (event: any): Promise<any> => {
       console.log("Parsed Signal:", parsed);
 
       const isValidSignal = parsed.symbol && parsed.entryZone;
-      const bybitClient = new PacificaCreator({ oneDealRisk: 25, testnet: false });
+      const client = new PacificaCreator({ oneDealRisk: 25, testnet: false });
 
-      const res = isValidSignal ? await bybitClient.executeTrade(parsed) : message;
+      const res = isValidSignal ? await client.executeTrade(parsed) : message;
       if (isValidSignal) {
         await sendMail(
           `New Signal Received: ${message || "No message"}\n\n

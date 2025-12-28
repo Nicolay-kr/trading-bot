@@ -181,10 +181,12 @@ export class PacificaClient extends ExchangeClient {
       symbol,
       side: sideMapped,
       amount: quantity.toString(),
-      tif: "GTC",
       reduce_only: false,
       stop_loss: {
         stop_price: stopLoss,
+      },
+      take_profit: {
+        stop_price: takeProfit,
       },
     };
 
@@ -193,13 +195,16 @@ export class PacificaClient extends ExchangeClient {
       return this.post({
         endpoint: "/orders/create",
         type: "create_order",
-        operationData: payload,
+        operationData: {
+          ...payload,
+          tif: "GTC",
+        },
       });
     } else {
       return this.post({
         endpoint: "/orders/create_market",
         type: "create_market_order",
-        operationData: payload,
+        operationData: { ...payload, slippage_percent: "0.5" },
       });
     }
   }
@@ -243,7 +248,7 @@ export class PacificaClient extends ExchangeClient {
     const leverage = 1 / stopLossPercent;
     const positionSize = (leverage * oneDealRisk) / entryPrice;
     return {
-      qty: Number(positionSize.toFixed(3)),
+      qty: Number(positionSize.toFixed(2)),
       leverage: Math.round(leverage),
     };
   }
@@ -254,6 +259,7 @@ export class PacificaClient extends ExchangeClient {
       side: signalSide,
       entryZone,
       stopLoss,
+      takeProfits,
     } = tradeSignal;
     const side = signalSide === "Buy" ? "BUY" : "SELL";
     const symbol = rawSymbol.match(/^[A-Z]+?(?=USDT$)/)?.[0] ?? rawSymbol;
@@ -278,6 +284,13 @@ export class PacificaClient extends ExchangeClient {
       quantity: qty,
       price: orderType === "Limit" ? entryPrice.toString() : undefined,
       ...(stopLoss ? { stopLoss: stopLoss.toString() } : {}),
+      ...(takeProfits
+        ? {
+            takeProfit: (takeProfits.reduce((acc, tp) => acc + tp, 0) / 3)
+              .toFixed(2)
+              .toString(),
+          }
+        : {}),
     });
   }
 }
@@ -285,18 +298,18 @@ export class PacificaClient extends ExchangeClient {
 // For test:
 
 // const parsedSignal: any = {
-//   symbol: "ETHUSDT",
+//   symbol: "XRPUSDT",
 //   side: "Buy",
-//   entryZone: [3000, 2800],
-//   stopLoss: 2700,
-//   takeProfits: [3100, 3200, 3300],
+//   entryZone: [1.872, 1.82],
+//   stopLoss: 1.8,
+//   takeProfits: [2, 2.1, 2.2],
 // };
 
-// const pacifica = new PacificaClient({ oneDealRisk: 20, testnet: false });
+// const pacifica = new PacificaClient({ oneDealRisk: 10, testnet: false });
 
 // const run = async () => {
-//   // await pacifica.createOrder(parsedSignal);
-//   await pacifica.cancelAllOrders();
+//   await pacifica.createOrder(parsedSignal);
+//   // await pacifica.cancelAllOrders();
 // };
 
 // run();
